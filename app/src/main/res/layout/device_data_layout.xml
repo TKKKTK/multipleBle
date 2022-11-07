@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <ImageButton
+        android:id="@+id/data_send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/bluetooth_data"
+        android:layout_margin="5dp"
+        android:visibility="visible"/>
+    <ImageButton
+        android:id="@+id/data_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_close_data"
+        android:layout_margin="5dp"
+        android:visibility="gone"/>
+
+    <ImageButton
+        android:id="@+id/list_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_datalist_top"
+        android:layout_margin="5dp"/>
+
+    <ImageButton
+        android:id="@+id/list_bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_datalist_bottom_24"
+        android:layout_margin="5dp"/>
+
+    <ImageButton
+        android:id="@+id/link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:src="@drawable/ic_bluetooth_send_24"/>
+
+    <ImageButton
+        android:id="@+id/download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_folder_24"
+        android:layout_margin="5dp"/>
+
+    <ImageButton
+        android:id="@+id/chart_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_chart_data"
+        android:layout_margin="5dp"/>
+
+</LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray01"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/data_list_rv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:listitem="@layout/device_data_item"/>
+
+</LinearLayout>
