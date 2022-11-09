@@ -82,7 +82,7 @@ public class DataFragment extends BaseFragment implements View.OnClickListener {
     public DataFragment(DecoratorBleManager decoratorBleManager,BluetoothDevice bluetoothDevice) {
 
         this.bluetoothDevice = bluetoothDevice;
-        this.file_name = getTimeRecord()+".txt";
+
 
 //        this.decoratorBleManager = decoratorBleManager;
     }
@@ -115,8 +115,7 @@ public class DataFragment extends BaseFragment implements View.OnClickListener {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(dataListAdapter);
-        MainActivity mainActivity = (MainActivity)getActivity();
-        this.fileDownload = new FileDownload(mainActivity,file_name);
+
     }
 
     public void setCallback(){
@@ -125,7 +124,13 @@ public class DataFragment extends BaseFragment implements View.OnClickListener {
                 @Override
                 public void DataReceiving(Data data) {
                     DataPacket dataPacket = new DataPacket(data,getTimeRecord());
+                    if (dataPackets.size()>=200){
+                        dataPackets.clear();
+                        dataListAdapter.notifyDataSetChanged();
+                        count = 0;
+                    }
                     dataPackets.add(dataPacket);
+                    Log.d(TAG, "主页面里面的数据列表容器长度: " + dataPackets.size());
                     dataPacketQueue.add(dataPacket);
                     count++;
                 }
@@ -150,6 +155,9 @@ public class DataFragment extends BaseFragment implements View.OnClickListener {
         switch (id){
             case R.id.data_send:
                 if (decoratorBleManager != null) {
+                    this.file_name = getTimeRecord()+".txt";
+                    MainActivity mainActivity = (MainActivity)getActivity();
+                    this.fileDownload = new FileDownload(mainActivity,file_name);
                     //获取Uri
                     fileDownload.CreateUri();
                     DataListThread dataListThread = new DataListThread();
@@ -254,6 +262,7 @@ public class DataFragment extends BaseFragment implements View.OnClickListener {
                 int nums = msg.arg1;
                 dataListAdapter.notifyItemRangeChanged(dataPackets.size()-1,nums);
                 recyclerView.scrollToPosition(dataPackets.size()-1);
+
             }
         }
     };

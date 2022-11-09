@@ -1,5 +1,8 @@
 package com.wg.multipleble.Adpter;
 
+import static android.content.ContentValues.TAG;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +18,9 @@ import com.wg.multipleble.R;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 数据列表适配器
+ */
 public class DataListAdapter extends RecyclerView.Adapter<DataListAdapter.ViewHolder>{
    private List<DataPacket> dataPackets = new ArrayList<>();
 
@@ -39,9 +45,9 @@ public class DataListAdapter extends RecyclerView.Adapter<DataListAdapter.ViewHo
 
     @Override
     public int getItemCount() {
+        Log.d(TAG, "适配器里面的列表容器长度: "+dataPackets.size());
         return dataPackets.size();
     }
-
 
     static class ViewHolder extends RecyclerView.ViewHolder{
         TextView data_text;

@@ -60,6 +60,9 @@ public class BleManager extends ObservableBleManager {
         return new DeviceBleManagerGattCallback();
     }
 
+    /**
+     * 自动获取设备的服务UUID
+     */
     public void getUUID(){
         SERVICE_UUID = scanResult.getScanRecord().getServiceUuids().get(0).getUuid();
     }

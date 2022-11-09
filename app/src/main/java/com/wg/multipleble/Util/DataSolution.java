@@ -11,6 +11,9 @@ import java.util.Stack;
 
 import no.nordicsemi.android.ble.data.Data;
 
+/**
+ * 肌电数据解析
+ */
 public class DataSolution {
     private static DataSolution _instance;
 

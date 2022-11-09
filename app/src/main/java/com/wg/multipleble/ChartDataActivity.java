@@ -49,7 +49,6 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
         setCallBack();
     }
 
-
     private void initView(){
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null){
