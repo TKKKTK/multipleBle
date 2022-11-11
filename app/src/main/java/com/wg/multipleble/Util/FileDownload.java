@@ -85,7 +85,7 @@ public class FileDownload {
         contentValues.put(MediaStore.Downloads.TITLE,"wg");
 
         //插入一条数据，然后把生成的这个文件的路径返回回来
-         insert = context.getContentResolver().insert(uri,contentValues);
+         this.insert = context.getContentResolver().insert(uri,contentValues);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)

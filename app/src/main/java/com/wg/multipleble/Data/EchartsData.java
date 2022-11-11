@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class EchartsData implements Serializable {
     private int dataPoint;
     private String time;
-    private boolean isRecord;
+    private boolean isRecord = false;
     public EchartsData(){
     }
 

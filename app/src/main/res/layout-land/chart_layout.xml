@@ -30,7 +30,8 @@
                 android:id="@+id/data_stop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="暂停"/>
+                android:text="暂停"
+                android:visibility="gone"/>
             <Button
                 android:id="@+id/data_link"
                 android:layout_width="wrap_content"
@@ -45,7 +46,13 @@
                 android:id="@+id/download_file"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:enabled="false"
                 android:text="导出"/>
+            <Button
+                android:id="@+id/sign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="标记"/>
             <Button
                 android:id="@+id/back"
                 android:layout_width="wrap_content"

@@ -19,14 +19,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 肌电信号波形图
+ */
 public class LineChartUtil {
     private LineChart lineChart; //图表
     private List<Entry> dataList = new ArrayList<>(); //存放X轴，Y轴数据
     private List<String> XLabel = new ArrayList<>(); //存放X轴标签
-    private List<EchartsData> echartsDataList = new ArrayList<>(); //存放数据点对象
     private LineData lineData;
     private LineDataSet lineDataSet;
-    private int count = 0;
     private List<List<Entry>> dataLists = new ArrayList<>();
     private List<ILineDataSet> lineDataSetList = new ArrayList<>();
 
@@ -103,11 +104,11 @@ public class LineChartUtil {
     private void initLineDataSet(String name, int color) {
         //初始化存放八条线的容器
         for (int i = 0; i<8; i++){
-            List<Entry> entryList = new ArrayList<>();
+            List<Entry> entryList = new ArrayList<>(); //每条线一个容器
             dataLists.add(entryList);
         }
 
-        for (int i = 0;i<1000;i++){
+        for (int i = 0;i<1000;i++){ //给每一条线添加1000个数据
             for (int j = 0; j < 8; j++){
                 Entry entry = new Entry(i,0-j*2500000);
                 List<Entry> entrys = dataLists.get(j);
@@ -132,9 +133,6 @@ public class LineChartUtil {
         lineData = new LineData(lineDataSetList);
         lineChart.setData(lineData);
 
-//        LineChartMarkView mv = new LineChartMarkView(context, xAxis.getValueFormatter());
-//        mv.setChartView(lineChart);
-//        lineChart.setMarker(mv);
         lineChart.invalidate();
 
     }
@@ -144,12 +142,12 @@ public class LineChartUtil {
      * @param uiEchartsData
      */
     public void UpdateData(List<UiEchartsData> uiEchartsData){
-        List<UiEchartsData> datas = uiEchartsData;
+        List<UiEchartsData> datas = uiEchartsData; //获取一个包的数据,一个包五个点
 
         /**
          * 移除x轴、Y轴前面的数据
          */
-        for (int i = 0; i<datas.get(0).getListPacket().size();i++){
+        for (int i = 0; i<datas.get(0).getListPacket().size();i++){  //将八条线的前面一个包给它去除
             for (int j = 0;j < 8;j++){
                 List<Entry> entries = dataLists.get(j);
                 entries.remove(0);
@@ -158,9 +156,8 @@ public class LineChartUtil {
             XLabel.remove(0);
         }
         /**
-         * 将数据往前移
+         * 将数据往前移,相当于重新设置每一个点的x坐标
          */
-        //将数据前移
         for (int i = 0;i < dataLists.size();i++){
             for (int j = 0; j <dataLists.get(i).size(); j++){
                 Entry entry = dataLists.get(i).get(j);
@@ -170,9 +167,15 @@ public class LineChartUtil {
         /**
          * 往末尾添加数据
          */
-        for (int i = 0; i<datas.get(0).getListPacket().size();i++){
+        for (int i = 0; i<datas.get(0).getListPacket().size();i++){ //一共八个通道,每个通道五个点的数据
             for (int j = 0; j < 8; j++){
-                Entry entry = new Entry(dataLists.get(j).size(),(datas.get(j).getListPacket().get(i).getDataPoint()-j*2500000));
+                EchartsData echartsData = datas.get(j).getListPacket().get(i);
+                Entry entry = null;
+                if (echartsData.isRecord()){
+                    entry = new Entry(dataLists.get(j).size(),0);
+                }else {
+                    entry = new Entry(dataLists.get(j).size(),(echartsData.getDataPoint()-j*2500000));
+                }
                 List<Entry> entrys = dataLists.get(j);
                 entrys.add(entry);
                 dataLists.set(j,entrys);
@@ -195,46 +198,5 @@ public class LineChartUtil {
         lineChart.notifyDataSetChanged();
         lineChart.invalidate();
     }
-
-    /**
-     * 导入txt时进行数据渲染
-     * @param datas
-     */
-//    public void UpdateData(List<Integer> datas){
-//        /**
-//         * 移出前面的数据
-//         */
-//        for (int i = 0; i<datas.size();i++){
-//            dataList.remove(0);
-//            XLabel.remove(0);
-//        }
-//        /**
-//         * 添加Y轴数据
-//         */
-//        for (int i = 0;i<dataList.size();i++){
-//            Entry entry = dataList.get(i);
-//            dataList.set(i,new Entry(i,entry.getY()));
-//        }
-//        /**
-//         * 添加X轴数据
-//         */
-//        for (int i = 0; i<datas.size();i++){
-//            Entry entry = new Entry(dataList.size(),datas.get(i));
-//            dataList.add(entry);
-//            //更新x轴标签的数据
-//            XLabel.add(new SimpleDateFormat("HH:mm:ss:SS").format(new Date().getTime()));
-//        }
-//
-//        XAxis xAxis = lineChart.getXAxis();
-//        xAxis.setValueFormatter(new IndexAxisValueFormatter(XLabel));
-//
-//        lineDataSet.setValues(dataList);
-//        lineData = new LineData(lineDataSet);
-//        lineChart.setData(lineData);
-//        //lineChart.moveViewTo(lineData.getEntryCount() - 10,50f, YAxis.AxisDependency.LEFT);
-//        lineChart.notifyDataSetChanged();
-//
-//        lineChart.invalidate();
-//    }
 
 }
