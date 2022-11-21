@@ -55,6 +55,12 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
     private boolean isEnd = false; //判断是否是最后一次存入数据
     private DeviceType deviceType; //用于记录是什么类型的设备
     private int step = 5; //用于记录每个通道的点数(一个包中)
+    private WriteEDFThread mWriteEDFThread;
+    private int countTest = 0; //用于测试记录包的总数
+    private boolean isBreak = false; //用于记录是否退出子线程里面的循环
+    private String startSaveTime; //用于记录开始存储的时间
+    private String stopSaveTime; //用于记录结束存储的时间
+
 
     public enum DeviceType{
         iFocus,
@@ -112,7 +118,7 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
                  @RequiresApi(api = Build.VERSION_CODES.O)
                  @Override
                  public void DataReceiving(Data data) {
-                     Log.d("ChartDataActivity", "DataReceiving: "+data.toString());
+                 //Log.d("ChartDataActivity", "DataReceiving: "+data.toString());
                      List<UiEchartsData> uiEchartsDataList = null;
                    //判断是什么类型的数据
                    switch (deviceType){
@@ -171,7 +177,8 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
               break;
           case R.id.start_save_data:
                StartSave();
-               new WriteEDFThread().start();
+               mWriteEDFThread = new WriteEDFThread();
+               mWriteEDFThread.start();
               break;
           case R.id.download_file:
                ImportFile();
@@ -196,6 +203,7 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
         isSave = true;
         start_save.setEnabled(false);
         download.setEnabled(true);
+        startSaveTime = getTimeRecord();
 
     }
 
@@ -205,12 +213,17 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void ImportFile(){
         //关闭保存
+//        mWriteEDFThread.interrupt();
+//        mWriteEDFThread = null;
         isSave = false;
         isEnd = true;
         writeEDF();
         start_save.setEnabled(true);
         download.setEnabled(false);
         closeEdf();
+        stopSaveTime = getTimeRecord();
+        Log.d(TAG, "文件的开始存储时间: "+startSaveTime);
+        Log.d(TAG, "文件的结束存储时间: "+stopSaveTime);
     }
 
     /**
@@ -223,7 +236,7 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
             super.run();
             while(isSave){
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(1500);
                     writeEDF(); // 写入edf数据
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -238,8 +251,8 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetEDF(){
-        int sf1=500, // 通道1的采样频率
-                edfsignals = 8; //通道数
+        int sf1=T, // 通道1的采样频率
+                edfsignals = 9; //通道数
         try
         {
             hdl = new EDFwriter(getTimeRecord()+".bdf", EDFwriter.EDFLIB_FILETYPE_BDFPLUS, edfsignals,ChartDataActivity.this);
@@ -257,13 +270,13 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
 
         for (int i = 0;i < edfsignals; i++){
             //设置信号的最大物理值
-            hdl.setPhysicalMaximum(i, 3000);
+            hdl.setPhysicalMaximum(i, (int) Math.pow(2,23)-1);
             //设置信号的最小物理值
-            hdl.setPhysicalMinimum(i, -3000);
+            hdl.setPhysicalMinimum(i, (int) Math.pow(-2,23));
             //设置信号的最大数字值
-            hdl.setDigitalMaximum(i, 32767);
+            hdl.setDigitalMaximum(i, (int) Math.pow(2,23)-1);
             //设置信号的最小数字值
-            hdl.setDigitalMinimum(i, -32768);
+            hdl.setDigitalMinimum(i, (int) Math.pow(-2,23));
             //设置信号的物理单位
             hdl.setPhysicalDimension(i, String.format("uV"));
 
@@ -271,7 +284,7 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
             hdl.setSampleFrequency(i, sf1);
 
             //设置信号标签
-            hdl.setSignalLabel(i, String.format("sine 500Hz", 0 + 1));
+            hdl.setSignalLabel(i, String.format("sine"+T+"HZ", 0 + 1));
         }
         /**
          * 开头写入标签
@@ -285,23 +298,31 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void writeEDF(){
-        edfDataJoint();
-        int err = 0;
-        while(!edfTWriteList.get(0).isEmpty()){
-            for (int i = 0; i < edfTWriteList.size();i++ ){
-                 int[] buf = edfTWriteList.get(i).poll();
-                try {
-                    err = hdl.writeDigitalSamples(buf);
-                    if(err != 0)
-                    {
-                        System.out.printf("writePhysicalSamples() returned error: %d\n", err);
-                        return;
+        try {
+            edfDataJoint();
+            int err = 0;
+            while(!edfTWriteList.get(0).isEmpty()){
+                for (int i = 0; i < edfTWriteList.size();i++ ){
+                    int[] buf = edfTWriteList.get(i).poll();
+                    try {
+                        err = hdl.writeDigitalSamples(buf);
+                        if(err != 0)
+                        {
+                            System.out.printf("writePhysicalSamples() returned error: %d\n", err);
+                            return;
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
+        }catch (Exception e){
+            isSave = false;
+            isEnd = true;
+            writeEDF();
+            closeEdf();
         }
+
 
     }
 
@@ -324,6 +345,27 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
        for (int i = 0; i < echartsDataList.size(); i++){
              echartsDataList.get(i).clear(); //打完标签后清空数据
        }
+    }
+
+    /**
+     * 脑电数据中写入标签需要整周期，整周期的写入
+     */
+    public void writeTSFSign(){
+        //拿到一个通道的数据
+        List<EchartsData> dataList = echartsDataList.get(0);
+        for (int i = 0; i < T; i++){
+            total++;
+            EchartsData echartsData = dataList.get(i);
+            if (echartsData.isRecord()){
+                hdl.writeAnnotation(calculateTime(total),-1,"Recording");
+            }
+        }
+
+        for (int i = 0; i < echartsDataList.size();i++){
+            for (int j = 0; j < T;j++){
+                echartsDataList.get(i).remove(0); //打完标签后移除一个周期的元素
+            }
+        }
     }
 
     /**
@@ -369,8 +411,16 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
         if (listQueue.isEmpty()){
             return;
         }
-        while (!listQueue.isEmpty()){
+        int length = listQueue.size();
+        int f = 0;
+
+        while (f<length){
+//            if (isBreak){
+//                isBreak = false;
+//                break;
+//            }
            List<UiEchartsData> uiEchartsDataList = listQueue.poll();
+           f++;
            for (int i = 0;i < uiEchartsDataList.size();i++){ //总共八个通道
                List<EchartsData> echartsData = uiEchartsDataList.get(i).getListPacket(); //得到每个通道的五个点
                List<EchartsData> echartsPointList = echartsDataList.get(i);
@@ -380,6 +430,7 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
                echartsDataList.set(i,echartsPointList); //添加edf打标签的数据
            }
             count += step;
+            countTest += step;
            //判断是否是最后一次存入数据
            if (isEnd){
                 int num = echartsDataList.get(0).size();
@@ -408,8 +459,8 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
                      edfTWriteList.set(i,edfIntBuf);
                    }
                }
-               writeSfSign();
-               break;
+               writeSfSign(); //写入信号标签
+               return;
            }else {
                switch (deviceType){
                    case iFocus:
@@ -422,8 +473,6 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
                        break;
                }
            }
-
-
 
         }
     }
@@ -444,9 +493,10 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
                  edfQueue.add(buf);
                  edfTWriteList.set(i,edfQueue);
              }
+             count = count - T;
              //满一个周期做判断打一次标签
-             writeSfSign();
-             count = 0;
+             writeTSFSign();
+             //isBreak = true;
          }
     }
 
@@ -468,6 +518,7 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
             }
             //满一个周期做判断打一次标签
             writeSfSign();
+            //isBreak = true;
         }
     }
 
@@ -479,7 +530,7 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
          total = 0;
          edfTWriteList.clear();
          echartsDataList.clear();
-         for (int i = 0; i < 8; i++){
+         for (int i = 0; i < 9; i++){
              Queue<int[]> edfQueue = new LinkedList<>();
              List<EchartsData> dataList = new ArrayList<>();
              edfTWriteList.add(edfQueue);
@@ -535,9 +586,11 @@ public class ChartDataActivity extends BaseActivity implements View.OnClickListe
                                 break;
                             case 1:
                                 deviceType = DeviceType.EMG;
+                                T = 250;
                                 break;
                             case 2:
                                 deviceType = DeviceType.brain;
+                                T = 500;
                                 break;
                         }
                     }

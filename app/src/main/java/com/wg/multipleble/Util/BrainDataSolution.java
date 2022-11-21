@@ -40,10 +40,13 @@ public class BrainDataSolution {
         int[][] echartsData = new int[72][3];
         //存放3字节转4字节的数据
         int[] _3byteTo4byte = new int[72];
+        //存放最后一位包序号
+        int serialNum = 0;
 
         for (int i = 0;i < arr1.length;i ++){
             dataArr[i] = Integer.valueOf(arr1[i],16); //16字节字符串转
         }
+        serialNum = dataArr[dataArr.length-1]; // 拿到包序号
         System.arraycopy(dataArr,2,subData,0,216);
         for (int i = 0; i < echartsData.length;i++){
             System.arraycopy(subData,i*3,echartsData[i],0,3);
@@ -78,6 +81,22 @@ public class BrainDataSolution {
             uiEchartsDataList.add(uiEchartsData);
         }
 
+        //单独添加一个通道,用来看是否丢包
+        UiEchartsData serialNumData = new UiEchartsData();
+        List<EchartsData> serialNumDataList = new ArrayList<>(); //新建一个列表用于存放九个点的数据
+        //前面八个点用1000补齐
+        for (int i = 0; i < 8;i++){
+            EchartsData data1 = new EchartsData();
+            data1.setDataPoint(1000);
+            data1.setTime(getTimeRecord());
+            serialNumDataList.add(data1);
+        }
+        EchartsData orderData = new EchartsData();
+        orderData.setDataPoint(serialNum);
+        orderData.setTime(getTimeRecord());
+        serialNumDataList.add(orderData);
+        serialNumData.setListPacket(serialNumDataList);
+        uiEchartsDataList.add(serialNumData);
 
         return uiEchartsDataList; //返回八个通道的数据,每个通道五个点
     }

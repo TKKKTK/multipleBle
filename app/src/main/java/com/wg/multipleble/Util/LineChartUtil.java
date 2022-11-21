@@ -81,6 +81,7 @@ public class LineChartUtil {
         xAxis.setAxisLineColor(Color.parseColor("#d5d5d5"));
         xAxis.setLabelCount(5,true);
         xAxis.setDrawLabels(true);
+
 //        xAxis.setValueFormatter(new ValueFormatter() {
 //            private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SS", Locale.ENGLISH);
 //            @Override
@@ -103,13 +104,13 @@ public class LineChartUtil {
      */
     private void initLineDataSet(String name, int color) {
         //初始化存放八条线的容器
-        for (int i = 0; i<8; i++){
+        for (int i = 0; i<9; i++){
             List<Entry> entryList = new ArrayList<>(); //每条线一个容器
             dataLists.add(entryList);
         }
 
         for (int i = 0;i<1000;i++){ //给每一条线添加1000个数据
-            for (int j = 0; j < 8; j++){
+            for (int j = 0; j < 9; j++){
                 Entry entry = new Entry(i,0-j*2500000);
                 List<Entry> entrys = dataLists.get(j);
                 entrys.add(entry);
@@ -121,7 +122,7 @@ public class LineChartUtil {
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setValueFormatter(new IndexAxisValueFormatter(XLabel));
 
-        for (int i = 0;i < 8; i++){
+        for (int i = 0;i < 9; i++){
             lineDataSet = new LineDataSet(dataLists.get(i), name);
             lineDataSet.setLineWidth(1.5f);
             lineDataSet.setDrawCircles(false);
@@ -148,7 +149,7 @@ public class LineChartUtil {
          * 移除x轴、Y轴前面的数据
          */
         for (int i = 0; i<datas.get(0).getListPacket().size();i++){  //将八条线的前面一个包给它去除
-            for (int j = 0;j < 8;j++){
+            for (int j = 0;j < 9;j++){
                 List<Entry> entries = dataLists.get(j);
                 entries.remove(0);
                 dataLists.set(j,entries);
@@ -168,7 +169,7 @@ public class LineChartUtil {
          * 往末尾添加数据
          */
         for (int i = 0; i<datas.get(0).getListPacket().size();i++){ //一共八个通道,每个通道五个点的数据
-            for (int j = 0; j < 8; j++){
+            for (int j = 0; j < 9; j++){
                 EchartsData echartsData = datas.get(j).getListPacket().get(i);
                 Entry entry = null;
                 if (echartsData.isRecord()){
@@ -181,7 +182,7 @@ public class LineChartUtil {
                 dataLists.set(j,entrys);
             }
             //更新x轴标签的数据
-            XLabel.add(datas.get(7).getListPacket().get(i).getTime());
+            XLabel.add(datas.get(8).getListPacket().get(i).getTime());
         }
 
         XAxis xAxis = lineChart.getXAxis();
